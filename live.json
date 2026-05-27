@@ -1,8 +1,8 @@
 {
   "account": {
-    "total_balance": 515.49,
-    "buying_power": 489.49,
-    "margin_requirement": 26.0,
+    "total_balance": 501.74,
+    "buying_power": 489.74,
+    "margin_requirement": 12.0,
     "balance_reservation": 270.0,
     "starting_deposit": 125.0
   },
@@ -25,24 +25,24 @@
   },
   "chud": {
     "allocated_bankroll": 100.0,
-    "realized_pnl": -1.91,
-    "unrealized_pnl": 16.65,
-    "deployed": 33.59,
-    "available": 66.41,
-    "win_count": 0,
+    "realized_pnl": 2.66,
+    "unrealized_pnl": 19.57,
+    "deployed": 35.04,
+    "available": 64.96,
+    "win_count": 1,
     "loss_count": 2,
     "positions": [
       {
         "match": "Hikaru Shiraishi vs. Kosuke Ogura",
         "outcome": "Hikaru Shiraishi",
         "side": "LONG",
-        "qty": 28,
-        "avg_entry": 0.238,
-        "cost": 6.66,
-        "cash_value": 13.16,
-        "unrealized": 6.5,
+        "qty": 50,
+        "avg_entry": 0.33,
+        "cost": 16.49,
+        "cash_value": 21.5,
+        "unrealized": 5.01,
         "realized": 4.39,
-        "fees": -0.06,
+        "fees": -0.13,
         "league": "ITF Men",
         "country_flag": "\ud83c\uddef\ud83c\uddf5",
         "event_slug": "itfm-hikshi-kosogu-2026-05-27",
@@ -55,30 +55,14 @@
         "qty": 2,
         "avg_entry": 0.457,
         "cost": 0.913,
-        "cash_value": 1.42,
-        "unrealized": 0.51,
+        "cash_value": 0.94,
+        "unrealized": 0.03,
         "realized": -1.28,
         "fees": -0.007,
         "league": "ITF Men",
         "country_flag": "\ud83c\udde6\ud83c\uddfa",
         "event_slug": "itfm-qiasun-lacmcf-2026-05-27",
         "url": "https://polymarket.us/event/itfm-qiasun-lacmcf-2026-05-27"
-      },
-      {
-        "match": "Ryota Tanuma vs. Hiromasa Koyama",
-        "outcome": "Hiromasa Koyama",
-        "side": "SHORT",
-        "qty": 14,
-        "avg_entry": 0.599,
-        "cost": 8.38,
-        "cash_value": 8.82,
-        "unrealized": 0.44,
-        "realized": -4.57,
-        "fees": -0.02,
-        "league": "ITF Men",
-        "country_flag": "\ud83c\uddef\ud83c\uddf5",
-        "event_slug": "itfm-ryotan-hirkoy-2026-05-27",
-        "url": "https://polymarket.us/event/itfm-ryotan-hirkoy-2026-05-27"
       },
       {
         "match": "Sora Fukuda vs. Saki Tange",
@@ -103,8 +87,8 @@
         "qty": 41,
         "avg_entry": 0.228,
         "cost": 9.335,
-        "cash_value": 9.02,
-        "unrealized": -0.32,
+        "cash_value": 9.43,
+        "unrealized": 0.09,
         "realized": -0.45,
         "fees": -0.095,
         "league": "ITF Men",
@@ -119,8 +103,8 @@
         "qty": 41,
         "avg_entry": 0.188,
         "cost": 7.71,
-        "cash_value": 17.22,
-        "unrealized": 9.51,
+        "cash_value": 22.14,
+        "unrealized": 14.43,
         "realized": 0.0,
         "fees": -0.08,
         "league": "ITF Women",
@@ -131,13 +115,63 @@
     ],
     "open_orders": [
       {
-        "match": "Hikaru Shiraishi vs. Kosuke Ogura",
-        "outcome": "Hikaru Shiraishi",
+        "match": "Yidi Yang vs. Yujia Huang",
+        "outcome": "Yidi Yang",
         "side": "BUY",
-        "price": 0.45,
-        "qty": 22,
+        "price": 0.19,
+        "qty": 52,
+        "filled": 41,
+        "leaves": 11,
+        "state": "ORDER_STATE_PARTIALLY_FILLED"
+      },
+      {
+        "match": "Patcharin Cheapchandej vs. Jiayi Wang",
+        "outcome": "Patcharin Cheapchandej",
+        "side": "BUY",
+        "price": 0.78,
+        "qty": 12,
         "filled": 0,
-        "leaves": 22,
+        "leaves": 12,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Patcharin Cheapchandej vs. Jiayi Wang",
+        "outcome": "Jiayi Wang",
+        "side": "SELL",
+        "price": 0.92,
+        "qty": 10,
+        "filled": 0,
+        "leaves": 10,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Noritaka Koizumi vs. Yuta KAWAHASHI",
+        "outcome": "Yuta KAWAHASHI",
+        "side": "SELL",
+        "price": 0.42,
+        "qty": 23,
+        "filled": 0,
+        "leaves": 23,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Attila Dominik Boros vs. Timo Rosenkranz Koenig",
+        "outcome": "Attila Dominik Boros",
+        "side": "BUY",
+        "price": 0.36,
+        "qty": 27,
+        "filled": 0,
+        "leaves": 27,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Attila Dominik Boros vs. Timo Rosenkranz Koenig",
+        "outcome": "Attila Dominik Boros",
+        "side": "BUY",
+        "price": 0.36,
+        "qty": 27,
+        "filled": 0,
+        "leaves": 27,
         "state": "ORDER_STATE_NEW"
       },
       {
@@ -161,66 +195,6 @@
         "state": "ORDER_STATE_NEW"
       },
       {
-        "match": "Attila Dominik Boros vs. Timo Rosenkranz Koenig",
-        "outcome": "Attila Dominik Boros",
-        "side": "BUY",
-        "price": 0.36,
-        "qty": 27,
-        "filled": 0,
-        "leaves": 27,
-        "state": "ORDER_STATE_NEW"
-      },
-      {
-        "match": "Attila Dominik Boros vs. Timo Rosenkranz Koenig",
-        "outcome": "Attila Dominik Boros",
-        "side": "BUY",
-        "price": 0.36,
-        "qty": 27,
-        "filled": 0,
-        "leaves": 27,
-        "state": "ORDER_STATE_NEW"
-      },
-      {
-        "match": "Patcharin Cheapchandej vs. Jiayi Wang",
-        "outcome": "Jiayi Wang",
-        "side": "SELL",
-        "price": 0.92,
-        "qty": 10,
-        "filled": 0,
-        "leaves": 10,
-        "state": "ORDER_STATE_NEW"
-      },
-      {
-        "match": "Patcharin Cheapchandej vs. Jiayi Wang",
-        "outcome": "Patcharin Cheapchandej",
-        "side": "BUY",
-        "price": 0.78,
-        "qty": 12,
-        "filled": 0,
-        "leaves": 12,
-        "state": "ORDER_STATE_NEW"
-      },
-      {
-        "match": "Yidi Yang vs. Yujia Huang",
-        "outcome": "Yidi Yang",
-        "side": "BUY",
-        "price": 0.19,
-        "qty": 52,
-        "filled": 41,
-        "leaves": 11,
-        "state": "ORDER_STATE_PARTIALLY_FILLED"
-      },
-      {
-        "match": "Noritaka Koizumi vs. Yuta KAWAHASHI",
-        "outcome": "Yuta KAWAHASHI",
-        "side": "SELL",
-        "price": 0.42,
-        "qty": 23,
-        "filled": 0,
-        "leaves": 23,
-        "state": "ORDER_STATE_NEW"
-      },
-      {
         "match": "Sanhui Shin vs. Kazuma Kawachi",
         "outcome": "Kazuma Kawachi",
         "side": "SELL",
@@ -238,6 +212,16 @@
         "qty": 11,
         "filled": 0,
         "leaves": 11,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Qian Sun vs. Lachlan McFadzean",
+        "outcome": "Qian Sun",
+        "side": "BUY",
+        "price": 0.49,
+        "qty": 20,
+        "filled": 0,
+        "leaves": 20,
         "state": "ORDER_STATE_NEW"
       }
     ],
@@ -273,16 +257,32 @@
         "reason": "stop loss -12%",
         "opened_at": "2026-05-27T03:33:40.703124+00:00",
         "closed_at": "2026-05-27T03:34:48.422361+00:00"
+      },
+      {
+        "num": 3,
+        "name": "Hiromasa Koyama",
+        "vs": "Ryota Tanuma",
+        "side": "short",
+        "avg_entry": 0.4,
+        "exit_price": 0.27,
+        "total_usd": 10.0,
+        "total_qty": 25.0,
+        "pnl": 3.25,
+        "pnl_pct": 32.5,
+        "cum_pnl_after": 1.8214,
+        "reason": "take profit +13%",
+        "opened_at": "2026-05-27T03:38:05.010359+00:00",
+        "closed_at": "2026-05-27T03:38:38.347852+00:00"
       }
     ]
   },
   "combined": {
     "total_starting": 225.0,
-    "total_current_value": 515.49,
-    "total_pnl": 390.49,
-    "total_pnl_pct": 312.39,
-    "total_realized": 398.92,
-    "total_unrealized": 16.65
+    "total_current_value": 501.74,
+    "total_pnl": 376.74,
+    "total_pnl_pct": 301.39,
+    "total_realized": 403.49,
+    "total_unrealized": 19.57
   },
-  "updated": "2026-05-27T03:38:15.190206+00:00"
+  "updated": "2026-05-27T03:39:18.108968+00:00"
 }
