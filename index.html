@@ -442,7 +442,12 @@
     <div class="section-label">📊 Account Overview</div>
     <div class="scoreboard" id="scoreboard"></div>
 
-    <!-- ── 2. Randy's Bankroll ── -->
+    <!-- ── 2. All Positions ── -->
+    <div class="section-label">📍 All Positions <span id="pos-count" style="font-size:12px;color:var(--muted);font-weight:400"></span></div>
+    <div class="positions-grid" id="positions-grid"></div>
+
+    <!-- ── OLD SECTIONS HIDDEN, replaced by unified view ── -->
+    <div style="display:none"><!-- legacy Randy section -->
     <div class="section-label">👤 Randy's Bankroll</div>
     <div class="trader-grid">
       <div class="trader-card" id="randy-stats"></div>
@@ -471,12 +476,10 @@
     <div class="section-label">🤖 Chud's Bankroll (Bot)</div>
     <div id="chud-stats" class="trader-card"></div>
 
-    <!-- ── 4. Live Positions ── -->
-    <div class="section-label">📍 Live Positions</div>
-    <div class="positions-grid" id="positions-grid"></div>
+    </div><!-- end hidden legacy -->
 
-    <!-- ── 5. Open Orders ── -->
-    <div class="section-label">📋 Open Orders</div>
+    <!-- ── 3. All Open Orders ── -->
+    <div class="section-label">📋 All Orders <span id="order-count" style="font-size:12px;color:var(--muted);font-weight:400"></span></div>
     <div class="trader-card" style="padding:0;overflow:hidden;">
       <div class="table-wrap">
         <table>
