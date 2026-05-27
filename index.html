@@ -486,9 +486,11 @@
               <th>Match</th>
               <th>Side</th>
               <th>Price</th>
-              <th>Qty</th>
-              <th>Filled</th>
-              <th>Remaining</th>
+              <th>$ Value</th>
+              <th>Fill Status</th>
+              <th>$ Filled</th>
+              <th>Fees</th>
+              <th>Time (ET)</th>
             </tr>
           </thead>
           <tbody id="orders-body"></tbody>
@@ -549,6 +551,13 @@ function fmt(v, opts = {}) {
   return pfx + s;
 }
 
+function fmtET(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', { timeZone:'America/New_York', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+  } catch(e) { return '—'; }
+}
 function fmtPct(v, sign = false) {
   if (v == null || isNaN(v)) return '—';
   const s = Math.abs(v).toFixed(2) + '%';
@@ -747,20 +756,27 @@ function renderPositions(data) {
   grid.innerHTML = positions.map(p => {
     const unrealized = p.unrealized || 0;
     const realized   = p.realized   || 0;
-    const accentCls  = unrealized > 0 ? 'profit' : unrealized < 0 ? 'loss' : 'flat';
+    const totalPnl   = p.total_pnl != null ? p.total_pnl : (unrealized + realized);
+    const totalPnlPct = p.total_pnl_pct || (p.cost > 0 ? ((totalPnl/p.cost)*100) : 0);
+    const accentCls  = totalPnl > 0 ? 'profit' : totalPnl < 0 ? 'loss' : 'flat';
     const sideCls    = p.side === 'LONG' ? 'side-long' : 'side-short';
     const pnlCls     = unrealized >= 0 ? 'pnl-positive' : 'pnl-negative';
+    const totalCls   = totalPnl >= 0 ? 'pnl-positive' : 'pnl-negative';
+    const unrealPct  = p.unrealized_pct || (p.cost > 0 ? ((unrealized/p.cost)*100) : 0);
+    const winProb    = p.win_prob || ((p.current_price || 0) * 100);
+    const posValue   = p.position_value || p.cash_value || 0;
 
-    /* price progress: % from entry toward 0 or 1 */
+    /* Price range bar: SL <-> Entry <-> TP */
     const entry = p.avg_entry || 0;
-    const curr  = p.current_price || 0;
-    let progress = 0;
-    if (p.side === 'LONG') {
-      progress = curr > 0 ? Math.min((curr / 1) * 100, 100) : 0;
-    } else {
-      progress = curr > 0 ? Math.min(((1 - curr) / 1) * 100, 100) : 0;
-    }
-    const progCls = unrealized >= 0 ? 'profit' : 'loss';
+    const curr  = p.current_price || entry;
+    const SL = 0.09, TP = 0.10, RANGE = SL + TP; // 19c total range
+    const slPrice = Math.max(0, entry - SL);
+    const tpPrice = Math.min(1, entry + TP);
+    const entryPct = ((entry - slPrice) / RANGE * 100).toFixed(1);
+    const curPct   = Math.max(0, Math.min(100, ((curr - slPrice) / RANGE * 100))).toFixed(1);
+    const move = curr - entry;
+    const moveSign = move >= 0 ? '+' : '';
+    const barCls = unrealized >= 0 ? 'profit' : 'loss';
 
     return `
       <div class="pos-card">
@@ -769,9 +785,20 @@ function renderPositions(data) {
           <div class="pos-top">
             <div>
               <div class="pos-match">${p.country_flag || ''} ${p.match || '—'}</div>
-              <div class="pos-league">${p.league || ''}</div>
+              <div class="pos-league">${p.league || ''} · ${p.outcome || ''}</div>
             </div>
-            <span class="side-badge ${sideCls}">${p.side}</span>
+            <div style="text-align:right">
+              <span class="side-badge ${sideCls}">${p.side}</span>
+              <div class="pos-pnl-hero ${totalCls}" style="font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.5px">${fmt(totalPnl, {sign:true})}</div>
+              <div style="font-size:11px;font-weight:600" class="${totalCls}">${fmtPct(totalPnlPct, true)} total</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px;">
+            <div style="font-size:10px;color:var(--muted2);white-space:nowrap">WIN %</div>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(winProb,100).toFixed(0)}%;background:${winProb>50?'var(--green)':winProb>30?'var(--gold)':'var(--red)'};border-radius:3px;transition:width .4s"></div>
+            </div>
+            <div class="mono" style="font-size:13px;font-weight:700;color:${winProb>50?'var(--green)':winProb>30?'var(--gold)':'var(--red)'}">${winProb.toFixed(1)}%</div>
           </div>
           <div class="pos-metrics">
             <div class="pos-metric">
@@ -779,18 +806,34 @@ function renderPositions(data) {
               <div class="pos-metric-val mono">${p.qty || 0}</div>
             </div>
             <div class="pos-metric">
-              <div class="pos-metric-lbl">Avg Entry</div>
-              <div class="pos-metric-val mono">$${(p.avg_entry||0).toFixed(3)}</div>
+              <div class="pos-metric-lbl">Entry</div>
+              <div class="pos-metric-val mono">${(entry*100).toFixed(1)}¢</div>
             </div>
             <div class="pos-metric">
               <div class="pos-metric-lbl">Now</div>
-              <div class="pos-metric-val mono ${pnlCls}">$${(p.current_price||0).toFixed(3)}</div>
+              <div class="pos-metric-val mono ${pnlCls}">${(curr*100).toFixed(1)}¢</div>
+            </div>
+            <div class="pos-metric">
+              <div class="pos-metric-lbl">Value</div>
+              <div class="pos-metric-val mono gold">${fmt(posValue)}</div>
+            </div>
+          </div>
+          <div class="price-progress" style="margin:10px 0 6px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px">
+              <span style="color:var(--red)">SL ${(slPrice*100).toFixed(0)}¢</span>
+              <span style="color:var(--muted2)">Entry ${(entry*100).toFixed(0)}¢</span>
+              <span style="color:var(--green)">TP ${(tpPrice*100).toFixed(0)}¢</span>
+            </div>
+            <div class="price-progress-bar" style="position:relative">
+              <div class="price-progress-fill ${barCls}" style="width:${curPct}%"></div>
+              <div style="position:absolute;left:${entryPct}%;top:-3px;width:2px;height:12px;background:rgba(255,255,255,.25);border-radius:1px"></div>
+              <div style="position:absolute;left:${curPct}%;top:-2px;width:10px;height:10px;border-radius:50%;transform:translateX(-50%);background:${unrealized>=0?'var(--green)':'var(--red)'};box-shadow:0 0 8px ${unrealized>=0?'var(--green-dim)':'var(--red-dim)'}"></div>
             </div>
           </div>
           <div class="pos-pnl-row">
             <div class="pos-pnl-item">
               <div class="pos-pnl-lbl">Unrealized</div>
-              <div class="pos-pnl-val ${unrealized >= 0 ? 'pnl-positive' : 'pnl-negative'}">${fmt(unrealized, {sign:true})}</div>
+              <div class="pos-pnl-val ${unrealized >= 0 ? 'pnl-positive' : 'pnl-negative'}">${fmt(unrealized, {sign:true})} <span style="font-size:10px;opacity:.7">(${fmtPct(unrealPct, true)})</span></div>
             </div>
             <div class="pos-pnl-item">
               <div class="pos-pnl-lbl">Realized</div>
@@ -800,17 +843,12 @@ function renderPositions(data) {
               <div class="pos-pnl-lbl">Cost</div>
               <div class="pos-pnl-val muted">${fmt(p.cost)}</div>
             </div>
-          </div>
-          <div class="price-progress">
-            <div class="price-progress-bar">
-              <div class="price-progress-fill ${progCls}" style="width:${progress.toFixed(1)}%"></div>
-            </div>
-            <div class="price-progress-labels">
-              <span>$0.00</span>
-              <span style="color:var(--muted2)">${progress.toFixed(0)}%</span>
-              <span>$1.00</span>
+            <div class="pos-pnl-item">
+              <div class="pos-pnl-lbl">Fees</div>
+              <div class="pos-pnl-val muted">${fmt(Math.abs(p.fees||0))}</div>
             </div>
           </div>
+          ${p.url ? `<a href="${p.url}" target="_blank" style="display:block;margin-top:8px;font-size:11px;color:var(--blue);text-decoration:none;opacity:.6">View on Polymarket →</a>` : ''}
         </div>
       </div>
     `;
@@ -833,23 +871,28 @@ function renderOrders(data) {
     const sideBadge = o.side === 'BUY'
       ? `<span class="buy-badge">BUY</span>`
       : `<span class="sell-badge">SELL</span>`;
-    const remaining = (o.qty || 0) - (o.filled || 0);
     const fillPct = o.qty > 0 ? ((o.filled / o.qty) * 100).toFixed(0) : 0;
+    const dollarVal = o.dollar_value || ((o.price||0) * (o.qty||0));
+    const filledVal = o.filled_value || ((o.price||0) * (o.filled||0));
+    const fees = o.fees || 0;
+    const ts = o.created_at ? fmtET(o.created_at) : '\u2014';
 
     return `
       <tr>
         <td class="muted">${i + 1}</td>
-        <td>${o.match || '—'}</td>
+        <td>${o.match || '\u2014'}${o.outcome ? `<br><span class="muted" style="font-size:10px">${o.outcome}</span>` : ''}</td>
         <td>${sideBadge}</td>
-        <td class="mono">$${(o.price||0).toFixed(3)}</td>
-        <td class="mono">${o.qty || 0}</td>
+        <td class="mono">${((o.price||0)*100).toFixed(1)}\u00a2</td>
+        <td class="mono gold">${fmt(dollarVal)}</td>
         <td class="mono">
           ${o.filled > 0
-            ? `<span class="green">${o.filled}</span> <span class="muted" style="font-size:11px;">(${fillPct}%)</span>`
-            : `<span class="muted">0</span>`
+            ? `<span class="green">${o.filled}</span><span class="muted" style="font-size:10px">/${o.qty} (${fillPct}%)</span>`
+            : `<span class="muted">0/${o.qty}</span>`
           }
         </td>
-        <td class="mono ${remaining > 0 ? 'gold' : 'muted'}">${remaining}</td>
+        <td class="mono">${o.filled > 0 ? fmt(filledVal) : '\u2014'}</td>
+        <td class="mono ${fees < 0 ? 'red' : fees > 0 ? 'green' : 'muted'}">${fees != 0 ? fmt(fees, {sign:true}) : '\u2014'}</td>
+        <td class="muted" style="font-size:11px;white-space:nowrap">${ts}</td>
       </tr>
     `;
   }).join('');
