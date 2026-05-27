@@ -1,1 +1,278 @@
-{"positions": [{"slug": "itfm-hikshi-kosogu-2026-05-27", "name": "Hikaru Shiraishi", "vs": "Kosuke Ogura", "side": "long", "entry": 0.24, "current": 0.32, "peak": 0.32, "usd": 10.0, "qty": 41.6667, "unr_pnl": 3.3333, "unr_pct": 33.33, "dist_tp": 0.02, "dist_sl": 0.17, "opened_at": "2026-05-27T03:33:40.054116+00:00", "url": "https://polymarket.us/event/itfm-hikshi-kosogu-2026-05-27", "tournament": "ITF M15 Karuizawa Men", "round": "Round of 32", "period": "S3", "elapsed": "", "prices": [0.16, 0.19, 0.24, 0.32]}, {"slug": "itfm-ryotan-hirkoy-2026-05-27", "name": "Ryota Tanuma", "vs": "Hiromasa Koyama", "side": "long", "entry": 0.84, "current": 0.8, "peak": 0.84, "usd": 10.0, "qty": 11.9048, "unr_pnl": -0.4762, "unr_pct": -4.76, "dist_tp": 0.14, "dist_sl": 0.05, "opened_at": "2026-05-27T03:33:40.703124+00:00", "url": "https://polymarket.us/event/itfm-ryotan-hirkoy-2026-05-27", "tournament": "ITF M15 Karuizawa Men", "round": "Round of 32", "period": "S3", "elapsed": "", "prices": [0.69, 0.76, 0.84, 0.8]}, {"slug": "itfw-patche-jiaywan-2026-05-27", "name": "Patcharin Cheapchandej", "vs": "Jiayi Wang", "side": "long", "entry": 0.78, "current": 0.83, "peak": 0.83, "usd": 10.0, "qty": 12.8205, "unr_pnl": 0.641, "unr_pct": 6.41, "dist_tp": 0.05, "dist_sl": 0.14, "opened_at": "2026-05-27T03:33:41.371997+00:00", "url": "https://polymarket.us/event/itfw-patche-jiaywan-2026-05-27", "tournament": "ITF W35 Wuning 2 Women", "round": "Round of 32", "period": "S2", "elapsed": "", "prices": [0.73, 0.77, 0.78, 0.83]}], "trades": [], "cumulative_pnl": 0.0, "deployed": 30.0, "bankroll": 100.0, "open_count": 3, "trade_count": 0, "scan_count": 4, "markets_scanned": 21, "updated": "2026-05-27T03:34:14.108183+00:00"}
+{
+  "account": {
+    "total_balance": 505.41,
+    "buying_power": 493.41,
+    "margin_requirement": 12.0,
+    "balance_reservation": 270.0,
+    "starting_deposit": 125.0
+  },
+  "randy": {
+    "starting_bankroll": 125.0,
+    "manual_pnl": 400.83,
+    "current_value": 525.8299999999999,
+    "trades": [
+      {
+        "match": "Roland Garros \u2014 Full Day Session",
+        "sport": "Tennis (ATP/WTA)",
+        "entry_amount": 125.0,
+        "pnl": 400.83,
+        "pnl_pct": 320.66,
+        "status": "closed",
+        "time": "2026-05-27T18:00:00Z",
+        "notes": "Manual swing trading \u2014 grew $125 to $525.83 in one session"
+      }
+    ]
+  },
+  "chud": {
+    "allocated_bankroll": 100.0,
+    "realized_pnl": 2.93,
+    "unrealized_pnl": 9.96,
+    "deployed": 34.43,
+    "available": 65.57,
+    "win_count": 0,
+    "loss_count": 2,
+    "positions": [
+      {
+        "match": "Hikaru Shiraishi vs. Kosuke Ogura",
+        "outcome": "Hikaru Shiraishi",
+        "side": "LONG",
+        "qty": 28,
+        "avg_entry": 0.238,
+        "cost": 6.66,
+        "cash_value": 9.52,
+        "unrealized": 2.86,
+        "realized": 4.39,
+        "fees": -0.06,
+        "league": "ITF Men",
+        "country_flag": "\ud83c\uddef\ud83c\uddf5",
+        "event_slug": "itfm-hikshi-kosogu-2026-05-27",
+        "url": "https://polymarket.us/event/itfm-hikshi-kosogu-2026-05-27"
+      },
+      {
+        "match": "Qian Sun vs. Lachlan McFadzean",
+        "outcome": "Lachlan McFadzean",
+        "side": "SHORT",
+        "qty": 2,
+        "avg_entry": 0.457,
+        "cost": 0.913,
+        "cash_value": 1.18,
+        "unrealized": 0.27,
+        "realized": -1.28,
+        "fees": -0.007,
+        "league": "ITF Men",
+        "country_flag": "\ud83c\udde6\ud83c\uddfa",
+        "event_slug": "itfm-qiasun-lacmcf-2026-05-27",
+        "url": "https://polymarket.us/event/itfm-qiasun-lacmcf-2026-05-27"
+      },
+      {
+        "match": "Ryota Tanuma vs. Hiromasa Koyama",
+        "outcome": "Ryota Tanuma",
+        "side": "LONG",
+        "qty": 11,
+        "avg_entry": 0.838,
+        "cost": 9.22,
+        "cash_value": 5.72,
+        "unrealized": -3.5,
+        "realized": 0.27,
+        "fees": -0.02,
+        "league": "ITF Men",
+        "country_flag": "\ud83c\uddef\ud83c\uddf5",
+        "event_slug": "itfm-ryotan-hirkoy-2026-05-27",
+        "url": "https://polymarket.us/event/itfm-ryotan-hirkoy-2026-05-27"
+      },
+      {
+        "match": "Sora Fukuda vs. Saki Tange",
+        "outcome": "Saki Tange",
+        "side": "SHORT",
+        "qty": 10,
+        "avg_entry": 0.059,
+        "cost": 0.59,
+        "cash_value": 0.5,
+        "unrealized": -0.09,
+        "realized": 0.0,
+        "fees": -0.01,
+        "league": "ITF Men",
+        "country_flag": "\ud83c\uddef\ud83c\uddf5",
+        "event_slug": "itfm-sorfuk-saktan-2026-05-27",
+        "url": "https://polymarket.us/event/itfm-sorfuk-saktan-2026-05-27"
+      },
+      {
+        "match": "Yuquan Jin vs. Shu Muto",
+        "outcome": "Yuquan Jin",
+        "side": "LONG",
+        "qty": 41,
+        "avg_entry": 0.228,
+        "cost": 9.335,
+        "cash_value": 11.07,
+        "unrealized": 1.73,
+        "realized": -0.45,
+        "fees": -0.095,
+        "league": "ITF Men",
+        "country_flag": "\ud83c\udde8\ud83c\uddf3",
+        "event_slug": "itfm-yuqjin-shumut-2026-05-27",
+        "url": "https://polymarket.us/event/itfm-yuqjin-shumut-2026-05-27"
+      },
+      {
+        "match": "Yidi Yang vs. Yujia Huang",
+        "outcome": "Yidi Yang",
+        "side": "LONG",
+        "qty": 41,
+        "avg_entry": 0.188,
+        "cost": 7.71,
+        "cash_value": 16.4,
+        "unrealized": 8.69,
+        "realized": 0.0,
+        "fees": -0.08,
+        "league": "ITF Women",
+        "country_flag": "\ud83c\udde8\ud83c\uddf3",
+        "event_slug": "itfw-yidyan-yujhua-2026-05-27",
+        "url": "https://polymarket.us/event/itfw-yidyan-yujhua-2026-05-27"
+      }
+    ],
+    "open_orders": [
+      {
+        "match": "Sanhui Shin vs. Kazuma Kawachi",
+        "outcome": "Kazuma Kawachi",
+        "side": "SELL",
+        "price": 0.97,
+        "qty": 10,
+        "filled": 0,
+        "leaves": 10,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Sanhui Shin vs. Kazuma Kawachi",
+        "outcome": "Sanhui Shin",
+        "side": "BUY",
+        "price": 0.87,
+        "qty": 11,
+        "filled": 0,
+        "leaves": 11,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Patcharin Cheapchandej vs. Jiayi Wang",
+        "outcome": "Patcharin Cheapchandej",
+        "side": "BUY",
+        "price": 0.78,
+        "qty": 12,
+        "filled": 0,
+        "leaves": 12,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Patcharin Cheapchandej vs. Jiayi Wang",
+        "outcome": "Jiayi Wang",
+        "side": "SELL",
+        "price": 0.92,
+        "qty": 10,
+        "filled": 0,
+        "leaves": 10,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Attila Dominik Boros vs. Timo Rosenkranz Koenig",
+        "outcome": "Attila Dominik Boros",
+        "side": "BUY",
+        "price": 0.36,
+        "qty": 27,
+        "filled": 0,
+        "leaves": 27,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Attila Dominik Boros vs. Timo Rosenkranz Koenig",
+        "outcome": "Attila Dominik Boros",
+        "side": "BUY",
+        "price": 0.36,
+        "qty": 27,
+        "filled": 0,
+        "leaves": 27,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Yidi Yang vs. Yujia Huang",
+        "outcome": "Yidi Yang",
+        "side": "BUY",
+        "price": 0.19,
+        "qty": 52,
+        "filled": 41,
+        "leaves": 11,
+        "state": "ORDER_STATE_PARTIALLY_FILLED"
+      },
+      {
+        "match": "Noritaka Koizumi vs. Yuta KAWAHASHI",
+        "outcome": "Yuta KAWAHASHI",
+        "side": "SELL",
+        "price": 0.42,
+        "qty": 23,
+        "filled": 0,
+        "leaves": 23,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Daniel Lara Salmeron vs. Kirill Mishkin",
+        "outcome": "Daniel Lara Salmeron",
+        "side": "BUY",
+        "price": 0.7,
+        "qty": 14,
+        "filled": 0,
+        "leaves": 14,
+        "state": "ORDER_STATE_NEW"
+      },
+      {
+        "match": "Daniel Lara Salmeron vs. Kirill Mishkin",
+        "outcome": "Kirill Mishkin",
+        "side": "SELL",
+        "price": 0.95,
+        "qty": 10,
+        "filled": 0,
+        "leaves": 10,
+        "state": "ORDER_STATE_NEW"
+      }
+    ],
+    "closed_trades": [
+      {
+        "num": 1,
+        "name": "Hikaru Shiraishi",
+        "vs": "Kosuke Ogura",
+        "side": "long",
+        "avg_entry": 0.24,
+        "exit_price": 0.24,
+        "total_usd": 10.0,
+        "total_qty": 41.6667,
+        "pnl": 0.0,
+        "pnl_pct": 0.0,
+        "cum_pnl_after": 0.0,
+        "reason": "trailing stop (peak 32% -> 24%)",
+        "opened_at": "2026-05-27T03:33:40.054116+00:00",
+        "closed_at": "2026-05-27T03:34:47.592001+00:00"
+      },
+      {
+        "num": 2,
+        "name": "Ryota Tanuma",
+        "vs": "Hiromasa Koyama",
+        "side": "long",
+        "avg_entry": 0.84,
+        "exit_price": 0.72,
+        "total_usd": 10.0,
+        "total_qty": 11.9048,
+        "pnl": -1.4286,
+        "pnl_pct": -14.29,
+        "cum_pnl_after": -1.4286,
+        "reason": "stop loss -12%",
+        "opened_at": "2026-05-27T03:33:40.703124+00:00",
+        "closed_at": "2026-05-27T03:34:48.422361+00:00"
+      }
+    ]
+  },
+  "combined": {
+    "total_starting": 225.0,
+    "total_current_value": 505.41,
+    "total_pnl": 380.41,
+    "total_pnl_pct": 304.33,
+    "total_realized": 403.76,
+    "total_unrealized": 9.96
+  },
+  "updated": "2026-05-27T03:37:11.972442+00:00"
+}
