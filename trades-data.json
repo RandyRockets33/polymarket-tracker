@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "updated": "2026-05-27T02:47:00Z",
+    "starting_bankroll": 125.00,
+    "current_bankroll": 525.83
+  },
+  "trades": [
+    {
+      "num": 1,
+      "trader": "Randy",
+      "name": "Roland Garros Tennis",
+      "vs": "(manual session)",
+      "avg_entry": null,
+      "exit_price": null,
+      "total_usd": 125.00,
+      "pnl": 400.83,
+      "pnl_pct": 320.66,
+      "cum_pnl_after": 400.83,
+      "reason": "Manual swing trading — full day session",
+      "opened_at": "2026-05-27T09:00:00Z",
+      "closed_at": "2026-05-27T18:00:00Z",
+      "note": "Individual trade breakdown not recorded. Randy traded manually on Roland Garros ATP/WTA markets, growing bankroll from $125 to $525.83."
+    }
+  ],
+  "chud_trades": []
+}

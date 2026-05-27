@@ -1,0 +1,22 @@
+{
+  "trades": [
+    {
+      "num": 1,
+      "name": "Jiayi Wang",
+      "vs": "Patcharin Cheapchandej",
+      "side": "short",
+      "avg_entry": 0.92,
+      "exit_price": 0.77,
+      "total_usd": 10.0,
+      "total_qty": 10.8696,
+      "pnl": 1.6304,
+      "pnl_pct": 16.3,
+      "cum_pnl_after": 1.6304,
+      "reason": "take profit +15%",
+      "opened_at": "2026-05-27T03:00:33.555053+00:00",
+      "closed_at": "2026-05-27T03:01:06.299555+00:00"
+    }
+  ],
+  "cumulative_pnl": 1.6304,
+  "updated": "2026-05-27T03:01:06.299798+00:00"
+}

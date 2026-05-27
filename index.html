@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GhostDawg Trade Tracker · Polymarket</title>
+  <style>
+    /* ── Reset & Fonts ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #08090d;
+      --surface:    #0f1117;
+      --surface2:   #151820;
+      --surface3:   #1c2030;
+      --border:     #242836;
+      --border2:    #2e3448;
+      --text:       #e8eaf0;
+      --muted:      #6b728a;
+      --muted2:     #4a5068;
+      --green:      #00e87c;
+      --green-dim:  #00b86199;
+      --red:        #ff4d6a;
+      --red-dim:    #ff4d6a99;
+      --gold:       #ffd24c;
+      --gold-dim:   #ffd24c88;
+      --blue:       #4d9eff;
+      --blue-dim:   #4d9eff88;
+      --purple:     #a78bfa;
+      --cyan:       #22d3ee;
+      --radius:     10px;
+      --radius-lg:  16px;
+      --font:       -apple-system, "SF Pro Display", "Segoe UI", sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animations ─────────────────────────────────────────── */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 #00e87c66; }
+      50%       { opacity: .7; transform: scale(1.25); box-shadow: 0 0 0 6px #00e87c00; }
+    }
+    @keyframes flash-update {
+      0%   { background: #00e87c18; }
+      100% { background: transparent; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    @keyframes glow-gold {
+      0%, 100% { text-shadow: 0 0 10px #ffd24c66; }
+      50%       { text-shadow: 0 0 22px #ffd24ccc, 0 0 40px #ffd24c44; }
+    }
+
+    .flash { animation: flash-update 1.2s ease; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    #app { max-width: 1280px; margin: 0 auto; padding: 0 16px 60px; }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #08090df2;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header-brand { display: flex; align-items: center; gap: 10px; }
+    .header-brand .ghost { font-size: 26px; }
+    .header-title { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+    .header-sub { font-size: 11px; color: var(--muted); letter-spacing: .8px; text-transform: uppercase; }
+    .live-badge {
+      display: flex; align-items: center; gap: 7px;
+      background: #00e87c14;
+      border: 1px solid #00e87c44;
+      border-radius: 50px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--green);
+      letter-spacing: .5px;
+    }
+    .live-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse-dot 1.8s infinite;
+    }
+    .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .last-updated { font-size: 11px; color: var(--muted); }
+
+    /* ── Section Labels ──────────────────────────────────────── */
+    .section-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--muted);
+      margin: 32px 0 12px;
+    }
+    .section-label::after {
+      content: ''; flex: 1;
+      height: 1px; background: var(--border);
+    }
+
+    /* ── Scoreboard Row ──────────────────────────────────────── */
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      animation: fade-in .4s ease both;
+    }
+    .score-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .score-card.gold::before { background: linear-gradient(90deg, var(--gold), transparent); }
+    .score-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .score-card.red::before { background: linear-gradient(90deg, var(--red), transparent); }
+    .score-card.blue::before { background: linear-gradient(90deg, var(--blue), transparent); }
+    .score-card.purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+
+    .score-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .score-value {
+      font-size: 26px; font-weight: 800;
+      letter-spacing: -.5px; line-height: 1;
+    }
+    .score-card.gold .score-value { color: var(--gold); animation: glow-gold 3s ease infinite; }
+    .score-card.green .score-value { color: var(--green); }
+    .score-card.red .score-value { color: var(--red); }
+    .score-card.blue .score-value { color: var(--blue); }
+    .score-card.purple .score-value { color: var(--purple); }
+    .score-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Trader Section ──────────────────────────────────────── */
+    .trader-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .trader-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      animation: fade-in .4s ease both;
+    }
+    .trader-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .trader-badge {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700;
+    }
+    .badge-pill {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      padding: 3px 10px; border-radius: 50px; text-transform: uppercase;
+    }
+    .badge-blue { background: #4d9eff22; color: var(--blue); border: 1px solid #4d9eff44; }
+    .badge-green { background: #00e87c22; color: var(--green); border: 1px solid #00e87c44; }
+
+    .trader-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .stat-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .stat-lbl { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+    .stat-val { font-size: 18px; font-weight: 700; }
+    .stat-val.green { color: var(--green); }
+    .stat-val.red { color: var(--red); }
+    .stat-val.gold { color: var(--gold); }
+    .stat-val.blue { color: var(--blue); }
+
+    /* ── Capital Bar ─────────────────────────────────────────── */
+    .capital-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+    .capital-bar-wrap {
+      flex: 1; height: 6px; background: var(--surface3);
+      border-radius: 4px; overflow: hidden;
+    }
+    .capital-bar-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, var(--green), #00b861);
+      transition: width .5s ease;
+    }
+    .capital-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+    /* ── Tables ──────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin-top: 8px; border-radius: var(--radius); }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead tr { background: var(--surface2); }
+    th {
+      text-align: left; padding: 10px 14px;
+      font-size: 10px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    .no-data { text-align: center; padding: 30px 16px; color: var(--muted); }
+    .no-data-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+
+    /* ── Position Cards ──────────────────────────────────────── */
+    .positions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .pos-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform .15s, box-shadow .15s;
+      animation: fade-in .4s ease both;
+    }
+    .pos-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #00000066; }
+    .pos-card-inner { padding: 16px; }
+    .pos-accent { height: 4px; }
+    .pos-accent.profit { background: linear-gradient(90deg, var(--green), transparent); }
+    .pos-accent.loss   { background: linear-gradient(90deg, var(--red),   transparent); }
+    .pos-accent.flat   { background: linear-gradient(90deg, var(--muted2), transparent); }
+
+    .pos-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .pos-match { font-size: 13px; font-weight: 600; line-height: 1.3; }
+    .pos-league { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .side-badge {
+      font-size: 10px; font-weight: 800; letter-spacing: .5px;
+      padding: 4px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;
+    }
+    .side-long  { background: #4d9eff22; color: var(--blue);  border: 1px solid #4d9eff44; }
+    .side-short { background: #a78bfa22; color: var(--purple); border: 1px solid #a78bfa44; }
+
+    .pos-metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pos-metric { text-align: center; }
+    .pos-metric-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .pos-metric-val { font-size: 14px; font-weight: 700; }
+
+    .pos-pnl-row { display: flex; justify-content: space-between; align-items: center; }
+    .pos-pnl-item { text-align: center; }
+    .pos-pnl-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .pos-pnl-val { font-size: 16px; font-weight: 800; }
+
+    .price-progress { margin-top: 12px; }
+    .price-progress-bar {
+      height: 4px; background: var(--surface3);
+      border-radius: 4px; overflow: hidden; margin-top: 4px;
+    }
+    .price-progress-fill {
+      height: 100%; border-radius: 4px;
+      transition: width .5s ease;
+    }
+    .price-progress-fill.profit { background: linear-gradient(90deg, var(--green), #00e87c88); }
+    .price-progress-fill.loss   { background: linear-gradient(90deg, var(--red), #ff4d6a88); }
+    .price-progress-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Badges ──────────────────────────────────────────────── */
+    .win-badge  { display: inline-block; background: #00e87c22; color: var(--green); border: 1px solid #00e87c44; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+    .loss-badge { display: inline-block; background: #ff4d6a22; color: var(--red);   border: 1px solid #ff4d6a44; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+    .open-badge { display: inline-block; background: #ffd24c22; color: var(--gold);  border: 1px solid #ffd24c44; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+    .buy-badge  { display: inline-block; background: #4d9eff22; color: var(--blue);  border: 1px solid #4d9eff44; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+    .sell-badge { display: inline-block; background: #a78bfa22; color: var(--purple); border: 1px solid #a78bfa44; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 700; letter-spacing: .3px; }
+
+    /* ── Combined Section ─────────────────────────────────────── */
+    .combined-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .combined-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      text-align: center;
+    }
+    .combined-card .big-val { font-size: 28px; font-weight: 800; }
+
+    /* ── Summary Split ───────────────────────────────────────── */
+    .summary-split {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-top: 12px;
+    }
+    .split-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .split-row:last-child { border-bottom: none; }
+    .split-label { font-size: 13px; color: var(--muted); }
+    .split-value { font-size: 14px; font-weight: 700; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px 16px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+      color: var(--muted2);
+      font-size: 11px;
+      letter-spacing: .3px;
+    }
+    footer span { color: var(--muted); }
+
+    /* ── Loading ─────────────────────────────────────────────── */
+    #loading {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 60vh; gap: 16px; color: var(--muted);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    /* ── Helpers ─────────────────────────────────────────────── */
+    .green { color: var(--green); }
+    .red   { color: var(--red); }
+    .gold  { color: var(--gold); }
+    .blue  { color: var(--blue); }
+    .muted { color: var(--muted); }
+    .mono  { font-variant-numeric: tabular-nums; }
+    .flex-center { display: flex; align-items: center; gap: 6px; }
+
+    .pnl-positive { color: var(--green); }
+    .pnl-negative { color: var(--red); }
+
+    /* ── Win Rate Pill ───────────────────────────────────────── */
+    .win-rate-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--surface3); border: 1px solid var(--border);
+      border-radius: 50px; padding: 3px 10px;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* ── Error banner ────────────────────────────────────────── */
+    #error-banner {
+      display: none;
+      background: #ff4d6a18; border: 1px solid #ff4d6a44;
+      border-radius: var(--radius); padding: 10px 16px;
+      font-size: 12px; color: var(--red);
+      margin-top: 12px; text-align: center;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 12px 14px; }
+      .header-title { font-size: 17px; }
+      .score-value { font-size: 20px; }
+      .scoreboard { grid-template-columns: repeat(2, 1fr); }
+      .positions-grid { grid-template-columns: 1fr; }
+      th, td { padding: 9px 10px; }
+      .section-label { margin-top: 24px; }
+      .score-card { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <span class="ghost">👻</span>
+    <div>
+      <div class="header-title">GhostDawg Trade Tracker</div>
+      <div class="header-sub">Polymarket · Live</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      LIVE
+    </div>
+    <div class="last-updated" id="header-updated">—</div>
+  </div>
+</header>
+
+<div id="app">
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>Loading live data…</div>
+  </div>
+
+  <div id="error-banner">⚠️ Unable to fetch live.json — data may be stale</div>
+
+  <div id="content" style="display:none">
+
+    <!-- ── 1. Account Overview ── -->
+    <div class="section-label">📊 Account Overview</div>
+    <div class="scoreboard" id="scoreboard"></div>
+
+    <!-- ── 2. Randy's Bankroll ── -->
+    <div class="section-label">👤 Randy's Bankroll</div>
+    <div class="trader-grid">
+      <div class="trader-card" id="randy-stats"></div>
+      <div class="trader-card" style="padding:0;overflow:hidden;">
+        <div style="padding:16px 20px 10px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Trade History</div>
+        <div class="table-wrap">
+          <table id="randy-trades-table">
+            <thead>
+              <tr>
+                <th>Match</th>
+                <th>Sport</th>
+                <th>Entry</th>
+                <th>P&L</th>
+                <th>P&L%</th>
+                <th>Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="randy-trades"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. Chud's Bankroll ── -->
+    <div class="section-label">🤖 Chud's Bankroll (Bot)</div>
+    <div id="chud-stats" class="trader-card"></div>
+
+    <!-- ── 4. Live Positions ── -->
+    <div class="section-label">📍 Live Positions</div>
+    <div class="positions-grid" id="positions-grid"></div>
+
+    <!-- ── 5. Open Orders ── -->
+    <div class="section-label">📋 Open Orders</div>
+    <div class="trader-card" style="padding:0;overflow:hidden;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Match</th>
+              <th>Side</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Filled</th>
+              <th>Remaining</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 6. Closed Trades ── -->
+    <div class="section-label">📁 Closed Trades</div>
+    <div class="trader-card" style="padding:0;overflow:hidden;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Match</th>
+              <th>Side</th>
+              <th>Entry</th>
+              <th>Exit</th>
+              <th>Qty</th>
+              <th>P&L</th>
+              <th>Cum. P&L</th>
+              <th>Result</th>
+              <th>Time (ET)</th>
+            </tr>
+          </thead>
+          <tbody id="closed-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 7. Combined Summary ── -->
+    <div class="section-label">🌐 Combined Summary</div>
+    <div class="combined-grid" id="combined-grid"></div>
+    <div class="summary-split" id="summary-split"></div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<footer>
+  <span>👻 GhostDawg Consulting</span> · Polymarket Tracker · Refreshes every 8s<br>
+  <span style="color:var(--muted2);margin-top:4px;display:block;">ghostdawg-polymarket-tracker.netlify.app · All figures in USD · Timestamps in ET</span>
+</footer>
+
+<script>
+/* ──────────────────────────────────────────────
+   Utilities
+────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+
+function fmt(v, opts = {}) {
+  const { prefix = '$', decimals = 2, sign = false } = opts;
+  if (v == null || isNaN(v)) return '—';
+  const abs = Math.abs(v);
+  const s = abs.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const pfx = prefix;
+  if (sign && v !== 0) return (v > 0 ? `+${pfx}` : `-${pfx}`) + s;
+  return pfx + s;
+}
+
+function fmtPct(v, sign = false) {
+  if (v == null || isNaN(v)) return '—';
+  const s = Math.abs(v).toFixed(2) + '%';
+  if (sign && v !== 0) return (v > 0 ? '+' : '-') + s;
+  return s;
+}
+
+function pnlClass(v) {
+  if (v > 0) return 'pnl-positive';
+  if (v < 0) return 'pnl-negative';
+  return 'muted';
+}
+
+function toET(isoString) {
+  if (!isoString) return '—';
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+      hour12: true
+    });
+  } catch { return isoString; }
+}
+
+function hashData(data) {
+  return JSON.stringify(data).split('').reduce((a, c) => (a << 5) - a + c.charCodeAt(0) | 0, 0);
+}
+
+function flashElement(el) {
+  if (!el) return;
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function emptyRow(cols, msg = '—') {
+  return `<tr><td colspan="${cols}" class="no-data"><span class="no-data-icon">📭</span>${msg}</td></tr>`;
+}
+
+/* ──────────────────────────────────────────────
+   Render: Scoreboard
+────────────────────────────────────────────── */
+function renderScoreboard(data) {
+  const acct = data.account || {};
+  const randy = data.randy || {};
+  const chud = data.chud || {};
+
+  const totalPnl = (randy.manual_pnl || 0) + (chud.realized_pnl || 0) + (chud.unrealized_pnl || 0);
+  const totalRoi = acct.starting_deposit
+    ? (totalPnl / acct.starting_deposit) * 100
+    : 0;
+
+  const cards = [
+    { label: 'Total Balance',    value: fmt(acct.total_balance),           cls: 'gold',   sub: `Buying power: ${fmt(acct.buying_power)}` },
+    { label: 'Starting Deposit', value: fmt(acct.starting_deposit),        cls: 'blue',   sub: `Margin req: ${fmt(acct.margin_requirement)}` },
+    { label: 'Total P&L',        value: fmt(totalPnl, {sign:true}),        cls: totalPnl >= 0 ? 'green' : 'red', sub: 'Randy + Chud combined' },
+    { label: 'Total ROI',        value: fmtPct(totalRoi, true),            cls: totalRoi >= 0 ? 'green' : 'red', sub: 'From starting deposit' },
+  ];
+
+  $('scoreboard').innerHTML = cards.map(c => `
+    <div class="score-card ${c.cls}">
+      <div class="score-label">${c.label}</div>
+      <div class="score-value mono">${c.value}</div>
+      <div class="score-sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+/* ──────────────────────────────────────────────
+   Render: Randy
+────────────────────────────────────────────── */
+function renderRandy(data) {
+  const r = data.randy || {};
+
+  $('randy-stats').innerHTML = `
+    <div class="trader-header">
+      <div class="trader-badge">
+        <span>👤</span>
+        <span>Randy</span>
+        <span class="badge-pill badge-blue">Manual Trader</span>
+      </div>
+    </div>
+    <div class="trader-stats">
+      <div class="stat-box">
+        <div class="stat-lbl">Starting</div>
+        <div class="stat-val gold">${fmt(r.starting_bankroll)}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">Manual P&L</div>
+        <div class="stat-val ${r.manual_pnl >= 0 ? 'green' : 'red'}">${fmt(r.manual_pnl, {sign:true})}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">Current Value</div>
+        <div class="stat-val gold">${fmt(r.current_value)}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">Total ROI</div>
+        <div class="stat-val ${r.manual_pnl >= 0 ? 'green' : 'red'}">${r.starting_bankroll ? fmtPct((r.manual_pnl/r.starting_bankroll)*100, true) : '—'}</div>
+      </div>
+    </div>
+  `;
+
+  const trades = r.trades || [];
+  const tbody = $('randy-trades');
+  if (!trades.length) {
+    tbody.innerHTML = emptyRow(7, 'No trades recorded');
+    return;
+  }
+  tbody.innerHTML = trades.map(t => {
+    const statusBadge = t.status === 'closed' ? `<span class="win-badge">CLOSED</span>` : `<span class="open-badge">OPEN</span>`;
+    return `
+      <tr>
+        <td>${t.match || '—'}</td>
+        <td>${t.sport || '—'}</td>
+        <td class="mono">${fmt(t.entry_amount)}</td>
+        <td class="mono ${pnlClass(t.pnl)}">${fmt(t.pnl, {sign:true})}</td>
+        <td class="mono ${pnlClass(t.pnl_pct)}">${fmtPct(t.pnl_pct, true)}</td>
+        <td>${statusBadge}</td>
+        <td class="muted" style="font-size:11px;max-width:200px;">${t.notes || '—'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   Render: Chud Stats
+────────────────────────────────────────────── */
+function renderChudStats(data) {
+  const c = data.chud || {};
+  const total = c.win_count + c.loss_count;
+  const winRate = total > 0 ? ((c.win_count / total) * 100).toFixed(1) : 0;
+  const deployPct = c.allocated_bankroll
+    ? ((c.deployed / c.allocated_bankroll) * 100).toFixed(1)
+    : 0;
+
+  $('chud-stats').innerHTML = `
+    <div class="trader-header">
+      <div class="trader-badge">
+        <span>🤖</span>
+        <span>Chud</span>
+        <span class="badge-pill badge-green">Bot Trader</span>
+      </div>
+      <div class="win-rate-pill">
+        <span style="color:var(--green)">▲</span>
+        <span>${winRate}% Win Rate</span>
+        <span class="muted">${c.win_count}W / ${c.loss_count}L</span>
+      </div>
+    </div>
+    <div class="trader-stats">
+      <div class="stat-box">
+        <div class="stat-lbl">Allocated</div>
+        <div class="stat-val gold">${fmt(c.allocated_bankroll)}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">Realized P&L</div>
+        <div class="stat-val ${(c.realized_pnl||0) >= 0 ? 'green' : 'red'}">${fmt(c.realized_pnl||0, {sign:true})}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">Unrealized P&L</div>
+        <div class="stat-val ${(c.unrealized_pnl||0) >= 0 ? 'green' : 'red'}">${fmt(c.unrealized_pnl||0, {sign:true})}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">Total P&L</div>
+        <div class="stat-val ${((c.realized_pnl||0)+(c.unrealized_pnl||0)) >= 0 ? 'green' : 'red'}">${fmt((c.realized_pnl||0)+(c.unrealized_pnl||0), {sign:true})}</div>
+      </div>
+    </div>
+    <div class="capital-row">
+      <div class="capital-label">Deployed ${fmt(c.deployed)}</div>
+      <div class="capital-bar-wrap">
+        <div class="capital-bar-fill" style="width:${Math.min(deployPct,100)}%"></div>
+      </div>
+      <div class="capital-label">Available ${fmt(c.available)}</div>
+      <div class="capital-label muted" style="font-size:11px;">${deployPct}% deployed</div>
+    </div>
+  `;
+}
+
+/* ──────────────────────────────────────────────
+   Render: Positions
+────────────────────────────────────────────── */
+function renderPositions(data) {
+  const positions = (data.chud || {}).positions || [];
+  const grid = $('positions-grid');
+
+  if (!positions.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1" class="no-data"><span class="no-data-icon">📭</span>No open positions</div>`;
+    return;
+  }
+
+  grid.innerHTML = positions.map(p => {
+    const unrealized = p.unrealized || 0;
+    const realized   = p.realized   || 0;
+    const accentCls  = unrealized > 0 ? 'profit' : unrealized < 0 ? 'loss' : 'flat';
+    const sideCls    = p.side === 'LONG' ? 'side-long' : 'side-short';
+    const pnlCls     = unrealized >= 0 ? 'pnl-positive' : 'pnl-negative';
+
+    /* price progress: % from entry toward 0 or 1 */
+    const entry = p.avg_entry || 0;
+    const curr  = p.current_price || 0;
+    let progress = 0;
+    if (p.side === 'LONG') {
+      progress = curr > 0 ? Math.min((curr / 1) * 100, 100) : 0;
+    } else {
+      progress = curr > 0 ? Math.min(((1 - curr) / 1) * 100, 100) : 0;
+    }
+    const progCls = unrealized >= 0 ? 'profit' : 'loss';
+
+    return `
+      <div class="pos-card">
+        <div class="pos-accent ${accentCls}"></div>
+        <div class="pos-card-inner">
+          <div class="pos-top">
+            <div>
+              <div class="pos-match">${p.country_flag || ''} ${p.match || '—'}</div>
+              <div class="pos-league">${p.league || ''}</div>
+            </div>
+            <span class="side-badge ${sideCls}">${p.side}</span>
+          </div>
+          <div class="pos-metrics">
+            <div class="pos-metric">
+              <div class="pos-metric-lbl">Qty</div>
+              <div class="pos-metric-val mono">${p.qty || 0}</div>
+            </div>
+            <div class="pos-metric">
+              <div class="pos-metric-lbl">Avg Entry</div>
+              <div class="pos-metric-val mono">$${(p.avg_entry||0).toFixed(3)}</div>
+            </div>
+            <div class="pos-metric">
+              <div class="pos-metric-lbl">Now</div>
+              <div class="pos-metric-val mono ${pnlCls}">$${(p.current_price||0).toFixed(3)}</div>
+            </div>
+          </div>
+          <div class="pos-pnl-row">
+            <div class="pos-pnl-item">
+              <div class="pos-pnl-lbl">Unrealized</div>
+              <div class="pos-pnl-val ${unrealized >= 0 ? 'pnl-positive' : 'pnl-negative'}">${fmt(unrealized, {sign:true})}</div>
+            </div>
+            <div class="pos-pnl-item">
+              <div class="pos-pnl-lbl">Realized</div>
+              <div class="pos-pnl-val ${realized >= 0 ? 'pnl-positive' : 'pnl-negative'}">${fmt(realized, {sign:true})}</div>
+            </div>
+            <div class="pos-pnl-item">
+              <div class="pos-pnl-lbl">Cost</div>
+              <div class="pos-pnl-val muted">${fmt(p.cost)}</div>
+            </div>
+          </div>
+          <div class="price-progress">
+            <div class="price-progress-bar">
+              <div class="price-progress-fill ${progCls}" style="width:${progress.toFixed(1)}%"></div>
+            </div>
+            <div class="price-progress-labels">
+              <span>$0.00</span>
+              <span style="color:var(--muted2)">${progress.toFixed(0)}%</span>
+              <span>$1.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   Render: Open Orders
+────────────────────────────────────────────── */
+function renderOrders(data) {
+  const orders = (data.chud || {}).open_orders || [];
+  const tbody = $('orders-body');
+
+  if (!orders.length) {
+    tbody.innerHTML = emptyRow(7, 'No open orders');
+    return;
+  }
+
+  tbody.innerHTML = orders.map((o, i) => {
+    const sideBadge = o.side === 'BUY'
+      ? `<span class="buy-badge">BUY</span>`
+      : `<span class="sell-badge">SELL</span>`;
+    const remaining = (o.qty || 0) - (o.filled || 0);
+    const fillPct = o.qty > 0 ? ((o.filled / o.qty) * 100).toFixed(0) : 0;
+
+    return `
+      <tr>
+        <td class="muted">${i + 1}</td>
+        <td>${o.match || '—'}</td>
+        <td>${sideBadge}</td>
+        <td class="mono">$${(o.price||0).toFixed(3)}</td>
+        <td class="mono">${o.qty || 0}</td>
+        <td class="mono">
+          ${o.filled > 0
+            ? `<span class="green">${o.filled}</span> <span class="muted" style="font-size:11px;">(${fillPct}%)</span>`
+            : `<span class="muted">0</span>`
+          }
+        </td>
+        <td class="mono ${remaining > 0 ? 'gold' : 'muted'}">${remaining}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   Render: Closed Trades
+────────────────────────────────────────────── */
+function renderClosed(data) {
+  const trades = [...((data.chud || {}).closed_trades || [])];
+  trades.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+  const tbody = $('closed-body');
+
+  if (!trades.length) {
+    tbody.innerHTML = emptyRow(10, 'No closed trades yet');
+    return;
+  }
+
+  let cumPnl = 0;
+  // Process cumulative in time-ascending order, then reverse
+  const withCum = [...trades].reverse().map(t => {
+    cumPnl += t.pnl || 0;
+    return { ...t, cumPnl };
+  });
+  withCum.reverse();
+
+  tbody.innerHTML = withCum.map((t, i) => {
+    const resultBadge = t.status === 'WIN'
+      ? `<span class="win-badge">WIN</span>`
+      : `<span class="loss-badge">LOSS</span>`;
+    const sideBadge = t.side === 'LONG' || t.side === 'BUY'
+      ? `<span class="buy-badge">${t.side}</span>`
+      : `<span class="sell-badge">${t.side}</span>`;
+    const pnlPct = t.entry && t.qty
+      ? (((t.exit - t.entry) * t.qty) / (t.entry * t.qty)) * 100
+      : 0;
+
+    return `
+      <tr>
+        <td class="muted">${withCum.length - i}</td>
+        <td>${t.match || '—'}</td>
+        <td>${sideBadge}</td>
+        <td class="mono">$${(t.entry||0).toFixed(3)}</td>
+        <td class="mono">$${(t.exit||0).toFixed(3)}</td>
+        <td class="mono">${t.qty || 0}</td>
+        <td class="mono ${pnlClass(t.pnl)}">${fmt(t.pnl||0, {sign:true})}</td>
+        <td class="mono ${pnlClass(t.cumPnl)}">${fmt(t.cumPnl, {sign:true})}</td>
+        <td>${resultBadge}</td>
+        <td class="muted" style="font-size:11px;white-space:nowrap;">${toET(t.time)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   Render: Combined
+────────────────────────────────────────────── */
+function renderCombined(data) {
+  const randy = data.randy || {};
+  const chud  = data.chud  || {};
+
+  const totalStart    = (randy.starting_bankroll || 0) + (chud.allocated_bankroll || 0);
+  const randyCurrent  = randy.current_value || 0;
+  const chudCurrent   = (chud.allocated_bankroll || 0) + (chud.realized_pnl || 0) + (chud.unrealized_pnl || 0);
+  const totalCurrent  = randyCurrent + chudCurrent;
+  const totalPnl      = (randy.manual_pnl || 0) + (chud.realized_pnl || 0) + (chud.unrealized_pnl || 0);
+  const totalRoi      = totalStart > 0 ? (totalPnl / totalStart) * 100 : 0;
+  const totalRealized   = (chud.realized_pnl || 0) + (randy.manual_pnl || 0);
+  const totalUnrealized = chud.unrealized_pnl || 0;
+
+  $('combined-grid').innerHTML = [
+    { label: 'Total Starting',   value: fmt(totalStart),               cls: 'gold', sub: 'Randy + Chud' },
+    { label: 'Total Value',      value: fmt(totalCurrent),             cls: 'gold', sub: 'Combined current' },
+    { label: 'Total P&L',        value: fmt(totalPnl, {sign:true}),    cls: totalPnl >= 0 ? 'green' : 'red', sub: 'All sources' },
+    { label: 'Total ROI',        value: fmtPct(totalRoi, true),        cls: totalRoi >= 0 ? 'green' : 'red', sub: 'From combined start' },
+  ].map(c => `
+    <div class="combined-card">
+      <div class="score-label">${c.label}</div>
+      <div class="big-val mono ${c.cls}">${c.value}</div>
+      <div class="score-sub">${c.sub}</div>
+    </div>
+  `).join('');
+
+  $('summary-split').innerHTML = `
+    <div class="split-row">
+      <span class="split-label">👤 Randy Starting</span>
+      <span class="split-value gold">${fmt(randy.starting_bankroll)}</span>
+    </div>
+    <div class="split-row">
+      <span class="split-label">👤 Randy Current Value</span>
+      <span class="split-value gold">${fmt(randy.current_value)}</span>
+    </div>
+    <div class="split-row">
+      <span class="split-label">👤 Randy Manual P&L</span>
+      <span class="split-value ${pnlClass(randy.manual_pnl)}">${fmt(randy.manual_pnl, {sign:true})}</span>
+    </div>
+    <div class="split-row">
+      <span class="split-label">🤖 Chud Allocated</span>
+      <span class="split-value gold">${fmt(chud.allocated_bankroll)}</span>
+    </div>
+    <div class="split-row">
+      <span class="split-label">🤖 Chud Realized P&L</span>
+      <span class="split-value ${pnlClass(chud.realized_pnl)}">${fmt(chud.realized_pnl, {sign:true})}</span>
+    </div>
+    <div class="split-row">
+      <span class="split-label">🤖 Chud Unrealized P&L</span>
+      <span class="split-value ${pnlClass(chud.unrealized_pnl)}">${fmt(chud.unrealized_pnl, {sign:true})}</span>
+    </div>
+    <div class="split-row" style="border-top:2px solid var(--border2);margin-top:4px;padding-top:12px;">
+      <span class="split-label" style="font-weight:700;color:var(--text)">Combined Realized</span>
+      <span class="split-value ${pnlClass(totalRealized)}">${fmt(totalRealized, {sign:true})}</span>
+    </div>
+    <div class="split-row">
+      <span class="split-label" style="font-weight:700;color:var(--text)">Combined Unrealized</span>
+      <span class="split-value ${pnlClass(totalUnrealized)}">${fmt(totalUnrealized, {sign:true})}</span>
+    </div>
+    <div class="split-row" style="background:var(--surface2);border-radius:8px;padding:12px 14px;">
+      <span class="split-label" style="font-weight:800;font-size:14px;color:var(--text)">🏆 Net Total P&L</span>
+      <span class="split-value" style="font-size:20px;font-weight:800;" class="${pnlClass(totalPnl)}">
+        <span class="${totalPnl >= 0 ? 'green' : 'red'}">${fmt(totalPnl, {sign:true})}</span>
+      </span>
+    </div>
+  `;
+}
+
+/* ──────────────────────────────────────────────
+   Main Render Loop
+────────────────────────────────────────────── */
+let lastHash = null;
+let firstLoad = true;
+
+async function fetchAndRender() {
+  try {
+    const url = `live.json?_=${Date.now()}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const h = hashData(data);
+    if (h === lastHash) return; // no change
+    lastHash = h;
+
+    // Update timestamp
+    const updatedEl = $('header-updated');
+    if (data.updated) {
+      updatedEl.textContent = `Updated ${toET(data.updated)}`;
+    }
+
+    // Render all sections
+    renderScoreboard(data);
+    renderRandy(data);
+    renderChudStats(data);
+    renderPositions(data);
+    renderOrders(data);
+    renderClosed(data);
+    renderCombined(data);
+
+    if (firstLoad) {
+      $('loading').style.display = 'none';
+      $('content').style.display = 'block';
+      firstLoad = false;
+    } else {
+      flashElement($('content'));
+    }
+
+    $('error-banner').style.display = 'none';
+
+  } catch (err) {
+    console.error('Fetch error:', err);
+    if (firstLoad) {
+      $('loading').innerHTML = `
+        <div style="text-align:center;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:8px;">📭</div>
+          <div>Could not load live.json</div>
+          <div style="font-size:11px;margin-top:4px;color:var(--muted2)">Place live.json in the same directory</div>
+        </div>
+      `;
+    } else {
+      $('error-banner').style.display = 'block';
+    }
+  }
+}
+
+// Boot
+fetchAndRender();
+setInterval(fetchAndRender, 8000);
+</script>
+</body>
+</html>
