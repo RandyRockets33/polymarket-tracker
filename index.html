@@ -607,23 +607,13 @@ function emptyRow(cols, msg = '—') {
 ────────────────────────────────────────────── */
 function renderScoreboard(data) {
   const acct = data.account || {};
-  const randy = data.randy || {};
-  const chud = data.chud || {};
-
-  const totalPnl = (randy.manual_pnl || 0) + (chud.realized_pnl || 0) + (chud.unrealized_pnl || 0);
-  const totalRoi = acct.starting_deposit
-    ? (totalPnl / acct.starting_deposit) * 100
-    : 0;
-
-  const cashBal = acct.cash_balance || acct.total_balance;
-  const posBal = acct.position_value || 0;
-  const equityBal = cashBal + posBal;
+  const portfolio = data.portfolio || {};
 
   const cards = [
-    { label: 'Total Balance',     value: fmt(equityBal),                    cls: 'gold',   sub: `Cash + Positions · Started at ${fmt(acct.starting_deposit)}` },
-    { label: 'Cash Balance',      value: fmt(cashBal),                      cls: 'blue',   sub: `Buying Power: ${fmt(acct.buying_power)}` },
-    { label: 'Position Value',    value: fmt(posBal),                       cls: 'purple', sub: `${(data.chud?.positions||[]).length} open positions` },
-    { label: 'Total P&L',         value: fmt(totalPnl, {sign:true}),        cls: totalPnl >= 0 ? 'green' : 'red', sub: `${fmtPct(totalRoi, true)} ROI · Randy + Chud` },
+    { label: 'Total Account',    value: fmt(acct.total_balance),           cls: 'gold',   sub: `Cash: ${fmt(acct.cash_balance)} · Positions: ${fmt(acct.position_value)}` },
+    { label: 'Buying Power',      value: fmt(acct.buying_power),            cls: 'blue',   sub: `${portfolio.position_count||0} positions · ${portfolio.order_count||0} orders` },
+    { label: 'Total P&L',        value: fmt(acct.total_pnl, {sign:true}),  cls: (acct.total_pnl||0) >= 0 ? 'green' : 'red', sub: `Started with ${fmt(acct.starting_deposit)}` },
+    { label: 'Total ROI',        value: fmtPct(acct.total_roi, true),      cls: (acct.total_roi||0) >= 0 ? 'green' : 'red', sub: `Unrealized: ${fmt(acct.total_unrealized, {sign:true})}` },
   ];
 
   $('scoreboard').innerHTML = cards.map(c => `
@@ -635,121 +625,16 @@ function renderScoreboard(data) {
   `).join('');
 }
 
-/* ──────────────────────────────────────────────
-   Render: Randy
-────────────────────────────────────────────── */
-function renderRandy(data) {
-  const r = data.randy || {};
-
-  $('randy-stats').innerHTML = `
-    <div class="trader-header">
-      <div class="trader-badge">
-        <span>👤</span>
-        <span>Randy</span>
-        <span class="badge-pill badge-blue">Manual Trader</span>
-      </div>
-    </div>
-    <div class="trader-stats">
-      <div class="stat-box">
-        <div class="stat-lbl">Starting</div>
-        <div class="stat-val gold">${fmt(r.starting_bankroll)}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-lbl">Manual P&L</div>
-        <div class="stat-val ${r.manual_pnl >= 0 ? 'green' : 'red'}">${fmt(r.manual_pnl, {sign:true})}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-lbl">Current Value</div>
-        <div class="stat-val gold">${fmt(r.current_value)}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-lbl">Total ROI</div>
-        <div class="stat-val ${r.manual_pnl >= 0 ? 'green' : 'red'}">${r.starting_bankroll ? fmtPct((r.manual_pnl/r.starting_bankroll)*100, true) : '—'}</div>
-      </div>
-    </div>
-  `;
-
-  const trades = r.trades || [];
-  const tbody = $('randy-trades');
-  if (!trades.length) {
-    tbody.innerHTML = emptyRow(7, 'No trades recorded');
-    return;
-  }
-  tbody.innerHTML = trades.map(t => {
-    const statusBadge = t.status === 'closed' ? `<span class="win-badge">CLOSED</span>` : `<span class="open-badge">OPEN</span>`;
-    return `
-      <tr>
-        <td>${t.match || '—'}</td>
-        <td>${t.sport || '—'}</td>
-        <td class="mono">${fmt(t.entry_amount)}</td>
-        <td class="mono ${pnlClass(t.pnl)}">${fmt(t.pnl, {sign:true})}</td>
-        <td class="mono ${pnlClass(t.pnl_pct)}">${fmtPct(t.pnl_pct, true)}</td>
-        <td>${statusBadge}</td>
-        <td class="muted" style="font-size:11px;max-width:200px;">${t.notes || '—'}</td>
-      </tr>
-    `;
-  }).join('');
-}
-
-/* ──────────────────────────────────────────────
-   Render: Chud Stats
-────────────────────────────────────────────── */
-function renderChudStats(data) {
-  const c = data.chud || {};
-  const total = c.win_count + c.loss_count;
-  const winRate = total > 0 ? ((c.win_count / total) * 100).toFixed(1) : 0;
-  const deployPct = c.allocated_bankroll
-    ? ((c.deployed / c.allocated_bankroll) * 100).toFixed(1)
-    : 0;
-
-  $('chud-stats').innerHTML = `
-    <div class="trader-header">
-      <div class="trader-badge">
-        <span>🤖</span>
-        <span>Chud</span>
-        <span class="badge-pill badge-green">Bot Trader</span>
-      </div>
-      <div class="win-rate-pill">
-        <span style="color:var(--green)">▲</span>
-        <span>${winRate}% Win Rate</span>
-        <span class="muted">${c.win_count}W / ${c.loss_count}L</span>
-      </div>
-    </div>
-    <div class="trader-stats">
-      <div class="stat-box">
-        <div class="stat-lbl">Allocated</div>
-        <div class="stat-val gold">${fmt(c.allocated_bankroll)}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-lbl">Realized P&L</div>
-        <div class="stat-val ${(c.realized_pnl||0) >= 0 ? 'green' : 'red'}">${fmt(c.realized_pnl||0, {sign:true})}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-lbl">Unrealized P&L</div>
-        <div class="stat-val ${(c.unrealized_pnl||0) >= 0 ? 'green' : 'red'}">${fmt(c.unrealized_pnl||0, {sign:true})}</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-lbl">Total P&L</div>
-        <div class="stat-val ${((c.realized_pnl||0)+(c.unrealized_pnl||0)) >= 0 ? 'green' : 'red'}">${fmt((c.realized_pnl||0)+(c.unrealized_pnl||0), {sign:true})}</div>
-      </div>
-    </div>
-    <div class="capital-row">
-      <div class="capital-label">Deployed ${fmt(c.deployed)}</div>
-      <div class="capital-bar-wrap">
-        <div class="capital-bar-fill" style="width:${Math.min(deployPct,100)}%"></div>
-      </div>
-      <div class="capital-label">Available ${fmt(c.available)}</div>
-      <div class="capital-label muted" style="font-size:11px;">${deployPct}% deployed</div>
-    </div>
-  `;
-}
-
-/* ──────────────────────────────────────────────
-   Render: Positions
-────────────────────────────────────────────── */
+/* ── Render: ALL Positions (unified) ── */
 function renderPositions(data) {
-  const positions = (data.chud || {}).positions || [];
+  const positions = (data.portfolio || {}).positions || [];
   const grid = $('positions-grid');
+  const countEl = $('pos-count');
+  if (countEl) {
+    const rCt = positions.filter(p=>p.trader==='Randy').length;
+    const cCt = positions.filter(p=>p.trader==='Chud').length;
+    countEl.textContent = `— ${positions.length} total (👤 ${rCt} Randy · 🤖 ${cCt} Chud)`;
+  }
 
   if (!positions.length) {
     grid.innerHTML = `<div style="grid-column:1/-1" class="no-data"><span class="no-data-icon">📭</span>No open positions</div>`;
@@ -759,20 +644,19 @@ function renderPositions(data) {
   grid.innerHTML = positions.map(p => {
     const unrealized = p.unrealized || 0;
     const realized   = p.realized   || 0;
-    const totalPnl   = p.total_pnl != null ? p.total_pnl : (unrealized + realized);
-    const totalPnlPct = p.total_pnl_pct || (p.cost > 0 ? ((totalPnl/p.cost)*100) : 0);
-    const accentCls  = totalPnl > 0 ? 'profit' : totalPnl < 0 ? 'loss' : 'flat';
+    const accentCls  = unrealized > 0 ? 'profit' : unrealized < 0 ? 'loss' : 'flat';
     const sideCls    = p.side === 'LONG' ? 'side-long' : 'side-short';
     const pnlCls     = unrealized >= 0 ? 'pnl-positive' : 'pnl-negative';
-    const totalCls   = totalPnl >= 0 ? 'pnl-positive' : 'pnl-negative';
     const unrealPct  = p.unrealized_pct || (p.cost > 0 ? ((unrealized/p.cost)*100) : 0);
-    const winProb    = p.win_prob || ((p.current_price || 0) * 100);
-    const posValue   = p.position_value || p.cash_value || 0;
+
+    const traderBadge = p.trader === 'Randy'
+      ? '<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:#4d9eff22;border:1px solid #4d9eff44;color:var(--blue);font-weight:700;">👤 Randy</span>'
+      : '<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:#00e87c18;border:1px solid #00e87c44;color:var(--green);font-weight:700;">🤖 Chud</span>';
 
     /* Price range bar: SL <-> Entry <-> TP */
     const entry = p.avg_entry || 0;
     const curr  = p.current_price || entry;
-    const SL = 0.09, TP = 0.10, RANGE = SL + TP; // 19c total range
+    const SL = 0.09, TP = 0.10, RANGE = SL + TP;
     const slPrice = Math.max(0, entry - SL);
     const tpPrice = Math.min(1, entry + TP);
     const entryPct = ((entry - slPrice) / RANGE * 100).toFixed(1);
@@ -788,20 +672,13 @@ function renderPositions(data) {
           <div class="pos-top">
             <div>
               <div class="pos-match">${p.country_flag || ''} ${p.match || '—'}</div>
-              <div class="pos-league">${p.league || ''} · ${p.outcome || ''}</div>
+              <div class="pos-league">${p.league || ''} · ${p.outcome || ''} · ${traderBadge}</div>
             </div>
             <div style="text-align:right">
               <span class="side-badge ${sideCls}">${p.side}</span>
-              <div class="pos-pnl-hero ${totalCls}" style="font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.5px">${fmt(totalPnl, {sign:true})}</div>
-              <div style="font-size:11px;font-weight:600" class="${totalCls}">${fmtPct(totalPnlPct, true)} total</div>
+              <div class="${pnlCls}" style="font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.5px">${fmt(unrealized, {sign:true})}</div>
+              <div style="font-size:11px;font-weight:600" class="${pnlCls}">${fmtPct(unrealPct, true)}</div>
             </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px;">
-            <div style="font-size:10px;color:var(--muted2);white-space:nowrap">WIN %</div>
-            <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
-              <div style="height:100%;width:${Math.min(winProb,100).toFixed(0)}%;background:${winProb>50?'var(--green)':winProb>30?'var(--gold)':'var(--red)'};border-radius:3px;transition:width .4s"></div>
-            </div>
-            <div class="mono" style="font-size:13px;font-weight:700;color:${winProb>50?'var(--green)':winProb>30?'var(--gold)':'var(--red)'}">${winProb.toFixed(1)}%</div>
           </div>
           <div class="pos-metrics">
             <div class="pos-metric">
@@ -817,8 +694,8 @@ function renderPositions(data) {
               <div class="pos-metric-val mono ${pnlCls}">${(curr*100).toFixed(1)}¢</div>
             </div>
             <div class="pos-metric">
-              <div class="pos-metric-lbl">Value</div>
-              <div class="pos-metric-val mono gold">${fmt(posValue)}</div>
+              <div class="pos-metric-lbl">Move</div>
+              <div class="pos-metric-val mono ${pnlCls}">${moveSign}${(move*100).toFixed(1)}¢</div>
             </div>
           </div>
           <div class="price-progress" style="margin:10px 0 6px">
@@ -835,20 +712,20 @@ function renderPositions(data) {
           </div>
           <div class="pos-pnl-row">
             <div class="pos-pnl-item">
-              <div class="pos-pnl-lbl">Unrealized</div>
-              <div class="pos-pnl-val ${unrealized >= 0 ? 'pnl-positive' : 'pnl-negative'}">${fmt(unrealized, {sign:true})} <span style="font-size:10px;opacity:.7">(${fmtPct(unrealPct, true)})</span></div>
+              <div class="pos-pnl-lbl">Cost</div>
+              <div class="pos-pnl-val muted">${fmt(p.cost)}</div>
+            </div>
+            <div class="pos-pnl-item">
+              <div class="pos-pnl-lbl">Value</div>
+              <div class="pos-pnl-val ${pnlCls}">${fmt(p.cash_value)}</div>
             </div>
             <div class="pos-pnl-item">
               <div class="pos-pnl-lbl">Realized</div>
               <div class="pos-pnl-val ${realized >= 0 ? 'pnl-positive' : 'pnl-negative'}">${fmt(realized, {sign:true})}</div>
             </div>
             <div class="pos-pnl-item">
-              <div class="pos-pnl-lbl">Cost</div>
-              <div class="pos-pnl-val muted">${fmt(p.cost)}</div>
-            </div>
-            <div class="pos-pnl-item">
               <div class="pos-pnl-lbl">Fees</div>
-              <div class="pos-pnl-val muted">${fmt(Math.abs(p.fees||0))}</div>
+              <div class="pos-pnl-val muted">${fmt(p.fees)}</div>
             </div>
           </div>
           ${p.url ? `<a href="${p.url}" target="_blank" style="display:block;margin-top:8px;font-size:11px;color:var(--blue);text-decoration:none;opacity:.6">View on Polymarket →</a>` : ''}
@@ -858,15 +735,15 @@ function renderPositions(data) {
   }).join('');
 }
 
-/* ──────────────────────────────────────────────
-   Render: Open Orders
-────────────────────────────────────────────── */
+/* ── Render: ALL Orders ── */
 function renderOrders(data) {
-  const orders = (data.chud || {}).open_orders || [];
+  const orders = (data.portfolio || {}).orders || [];
   const tbody = $('orders-body');
+  const countEl = $('order-count');
+  if (countEl) countEl.textContent = `— ${orders.length} total`;
 
   if (!orders.length) {
-    tbody.innerHTML = emptyRow(7, 'No open orders');
+    tbody.innerHTML = emptyRow(10, 'No open orders');
     return;
   }
 
@@ -874,50 +751,58 @@ function renderOrders(data) {
     const sideBadge = o.side === 'BUY'
       ? `<span class="buy-badge">BUY</span>`
       : `<span class="sell-badge">SELL</span>`;
+    const remaining = (o.qty || 0) - (o.filled || 0);
     const fillPct = o.qty > 0 ? ((o.filled / o.qty) * 100).toFixed(0) : 0;
-    const dollarVal = o.dollar_value || ((o.price||0) * (o.qty||0));
-    const filledVal = o.filled_value || ((o.price||0) * (o.filled||0));
-    const fees = o.fees || 0;
-    const ts = o.created_at ? fmtET(o.created_at) : '\u2014';
+    const traderBadge = o.trader === 'Randy'
+      ? '<span style="font-size:10px;padding:1px 5px;border-radius:8px;background:#4d9eff22;color:var(--blue);">👤</span>'
+      : '<span style="font-size:10px;padding:1px 5px;border-radius:8px;background:#00e87c18;color:var(--green);">🤖</span>';
 
     return `
       <tr>
         <td class="muted">${i + 1}</td>
-        <td>${o.match || '\u2014'}${o.outcome ? `<br><span class="muted" style="font-size:10px">${o.outcome}</span>` : ''}</td>
+        <td>${traderBadge}</td>
+        <td>${o.match || '—'}</td>
+        <td style="font-size:11px;color:var(--muted)">${o.outcome || ''}</td>
         <td>${sideBadge}</td>
-        <td class="mono">${((o.price||0)*100).toFixed(1)}\u00a2</td>
-        <td class="mono gold">${fmt(dollarVal)}</td>
+        <td class="mono">$${(o.price||0).toFixed(3)}</td>
+        <td class="mono">${o.qty || 0}</td>
         <td class="mono">
           ${o.filled > 0
-            ? `<span class="green">${o.filled}</span><span class="muted" style="font-size:10px">/${o.qty} (${fillPct}%)</span>`
-            : `<span class="muted">0/${o.qty}</span>`
+            ? `<span class="green">${o.filled}</span> <span class="muted" style="font-size:11px;">(${fillPct}%)</span>`
+            : `<span class="muted">0</span>`
           }
         </td>
-        <td class="mono">${o.filled > 0 ? fmt(filledVal) : '\u2014'}</td>
-        <td class="mono ${fees < 0 ? 'red' : fees > 0 ? 'green' : 'muted'}">${fees != 0 ? fmt(fees, {sign:true}) : '\u2014'}</td>
-        <td class="muted" style="font-size:11px;white-space:nowrap">${ts}</td>
+        <td class="mono ${remaining > 0 ? 'gold' : 'muted'}">${remaining}</td>
+        <td class="mono muted">${fmt(o.dollar_value)}</td>
       </tr>
     `;
   }).join('');
 }
 
-/* ──────────────────────────────────────────────
-   Render: Closed Trades
-────────────────────────────────────────────── */
+/* ── Render: Bot Closed Trades ── */
 function renderClosed(data) {
-  const trades = [...((data.chud || {}).closed_trades || [])];
-  trades.sort((a, b) => new Date(b.time) - new Date(a.time));
+  // Combine Randy + Chud trades into one history
+  const chudTrades = ((data.chud || {}).closed_trades || []).map(t => ({
+    ...t, trader: t.trader || 'Chud', bet: t.cost || 0
+  }));
+  const randyTrades = ((data.randy || {}).trades || []).map(t => ({
+    match: t.match, side: null, trader: 'Randy', entry: null, exit: null,
+    qty: null, bet: t.entry_amount || 0, pnl: t.pnl || 0, pnl_pct: t.pnl_pct || 0,
+    status: (t.pnl||0) >= 0 ? 'WIN' : 'LOSS', time: t.time, opened_at: t.time,
+    reason: t.notes || '', cost: t.entry_amount || 0
+  }));
+
+  const allTrades = [...chudTrades, ...randyTrades];
+  allTrades.sort((a, b) => new Date(b.time || b.opened_at || 0) - new Date(a.time || a.opened_at || 0));
 
   const tbody = $('closed-body');
-
-  if (!trades.length) {
-    tbody.innerHTML = emptyRow(10, 'No closed trades yet');
+  if (!allTrades.length) {
+    tbody.innerHTML = emptyRow(13, 'No closed trades yet');
     return;
   }
 
   let cumPnl = 0;
-  // Process cumulative in time-ascending order, then reverse
-  const withCum = [...trades].reverse().map(t => {
+  const withCum = [...allTrades].reverse().map(t => {
     cumPnl += t.pnl || 0;
     return { ...t, cumPnl };
   });
@@ -927,51 +812,43 @@ function renderClosed(data) {
     const resultBadge = t.status === 'WIN'
       ? `<span class="win-badge">WIN</span>`
       : `<span class="loss-badge">LOSS</span>`;
-    const sideBadge = t.side === 'LONG' || t.side === 'BUY'
-      ? `<span class="buy-badge">${t.side}</span>`
-      : `<span class="sell-badge">${t.side}</span>`;
-    const pnlPct = t.entry && t.qty
-      ? (((t.exit - t.entry) * t.qty) / (t.entry * t.qty)) * 100
-      : 0;
+    const traderBadge = (t.trader||'').includes('Randy')
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(61,158,255,.15);border:1px solid rgba(61,158,255,.35);color:var(--blue)">\ud83d\udc64 Randy</span>`
+      : `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(0,232,124,.1);border:1px solid rgba(0,232,124,.3);color:var(--green)">\ud83e\udd16 Chud</span>`;
+    const sideBadge = !t.side ? `<span class="muted">\u2014</span>`
+      : `<span class="${t.side==='LONG'||t.side==='BUY'?'buy-badge':'sell-badge'}">${t.side}</span>`;
 
     return `
       <tr>
         <td class="muted">${withCum.length - i}</td>
-        <td>${t.match || '—'}</td>
+        <td>${traderBadge}</td>
+        <td>${t.match || '\u2014'}${t.reason ? `<br><span class="muted" style="font-size:10px">${t.reason}</span>` : ''}</td>
         <td>${sideBadge}</td>
-        <td class="mono">$${(t.entry||0).toFixed(3)}</td>
-        <td class="mono">$${(t.exit||0).toFixed(3)}</td>
-        <td class="mono">${t.qty || 0}</td>
+        <td class="mono">${t.entry != null ? ((t.entry*100).toFixed(1)+'\u00a2') : '\u2014'}</td>
+        <td class="mono">${t.exit != null ? ((t.exit*100).toFixed(1)+'\u00a2') : '\u2014'}</td>
+        <td class="mono gold">${fmt(t.bet || t.cost || 0)}</td>
         <td class="mono ${pnlClass(t.pnl)}">${fmt(t.pnl||0, {sign:true})}</td>
+        <td class="mono ${pnlClass(t.pnl_pct)}">${fmtPct(t.pnl_pct||0, true)}</td>
         <td class="mono ${pnlClass(t.cumPnl)}">${fmt(t.cumPnl, {sign:true})}</td>
         <td>${resultBadge}</td>
-        <td class="muted" style="font-size:11px;white-space:nowrap;">${toET(t.time)}</td>
+        <td class="muted" style="font-size:11px;white-space:nowrap">${toET(t.opened_at)}</td>
+        <td class="muted" style="font-size:11px;white-space:nowrap">${toET(t.time)}</td>
       </tr>
     `;
   }).join('');
 }
 
-/* ──────────────────────────────────────────────
-   Render: Combined
-────────────────────────────────────────────── */
+/* ── Render: P&L Summary ── */
 function renderCombined(data) {
+  const acct  = data.account || {};
   const randy = data.randy || {};
-  const chud  = data.chud  || {};
-
-  const totalStart    = (randy.starting_bankroll || 0) + (chud.allocated_bankroll || 0);
-  const randyCurrent  = randy.current_value || 0;
-  const chudCurrent   = (chud.allocated_bankroll || 0) + (chud.realized_pnl || 0) + (chud.unrealized_pnl || 0);
-  const totalCurrent  = randyCurrent + chudCurrent;
-  const totalPnl      = (randy.manual_pnl || 0) + (chud.realized_pnl || 0) + (chud.unrealized_pnl || 0);
-  const totalRoi      = totalStart > 0 ? (totalPnl / totalStart) * 100 : 0;
-  const totalRealized   = (chud.realized_pnl || 0) + (randy.manual_pnl || 0);
-  const totalUnrealized = chud.unrealized_pnl || 0;
+  const chud  = data.chud || {};
 
   $('combined-grid').innerHTML = [
-    { label: 'Total Starting',   value: fmt(totalStart),               cls: 'gold', sub: 'Randy + Chud' },
-    { label: 'Total Value',      value: fmt(totalCurrent),             cls: 'gold', sub: 'Combined current' },
-    { label: 'Total P&L',        value: fmt(totalPnl, {sign:true}),    cls: totalPnl >= 0 ? 'green' : 'red', sub: 'All sources' },
-    { label: 'Total ROI',        value: fmtPct(totalRoi, true),        cls: totalRoi >= 0 ? 'green' : 'red', sub: 'From combined start' },
+    { label: 'Account Value',    value: fmt(acct.total_balance),               cls: 'gold', sub: 'Cash + positions' },
+    { label: 'Total P&L',       value: fmt(acct.total_pnl, {sign:true}),      cls: (acct.total_pnl||0) >= 0 ? 'green' : 'red', sub: `From $${acct.starting_deposit} deposit` },
+    { label: 'Total ROI',       value: fmtPct(acct.total_roi, true),          cls: (acct.total_roi||0) >= 0 ? 'green' : 'red', sub: 'Since deposit' },
+    { label: 'Unrealized',      value: fmt(acct.total_unrealized, {sign:true}),cls: (acct.total_unrealized||0) >= 0 ? 'green' : 'red', sub: 'Open positions' },
   ].map(c => `
     <div class="combined-card">
       <div class="score-label">${c.label}</div>
@@ -982,49 +859,43 @@ function renderCombined(data) {
 
   $('summary-split').innerHTML = `
     <div class="split-row">
-      <span class="split-label">👤 Randy Starting</span>
-      <span class="split-value gold">${fmt(randy.starting_bankroll)}</span>
+      <span class="split-label">💰 Starting Deposit</span>
+      <span class="split-value gold">${fmt(acct.starting_deposit)}</span>
     </div>
     <div class="split-row">
-      <span class="split-label">👤 Randy Current Value</span>
-      <span class="split-value gold">${fmt(randy.current_value)}</span>
+      <span class="split-label">💵 Cash Balance</span>
+      <span class="split-value gold">${fmt(acct.cash_balance)}</span>
     </div>
     <div class="split-row">
-      <span class="split-label">👤 Randy Manual P&L</span>
-      <span class="split-value ${pnlClass(randy.manual_pnl)}">${fmt(randy.manual_pnl, {sign:true})}</span>
+      <span class="split-label">📊 Position Market Value</span>
+      <span class="split-value">${fmt(acct.position_value)}</span>
     </div>
     <div class="split-row">
-      <span class="split-label">🤖 Chud Allocated</span>
-      <span class="split-value gold">${fmt(chud.allocated_bankroll)}</span>
+      <span class="split-label">👤 Randy Positions (${randy.position_count})</span>
+      <span class="split-value ${(randy.unrealized||0)>=0?'green':'red'}">${fmt(randy.unrealized, {sign:true})} unr</span>
     </div>
     <div class="split-row">
-      <span class="split-label">🤖 Chud Realized P&L</span>
-      <span class="split-value ${pnlClass(chud.realized_pnl)}">${fmt(chud.realized_pnl, {sign:true})}</span>
+      <span class="split-label">🤖 Chud Positions (${chud.position_count})</span>
+      <span class="split-value ${(chud.unrealized||0)>=0?'green':'red'}">${fmt(chud.unrealized, {sign:true})} unr</span>
     </div>
     <div class="split-row">
-      <span class="split-label">🤖 Chud Unrealized P&L</span>
-      <span class="split-value ${pnlClass(chud.unrealized_pnl)}">${fmt(chud.unrealized_pnl, {sign:true})}</span>
-    </div>
-    <div class="split-row" style="border-top:2px solid var(--border2);margin-top:4px;padding-top:12px;">
-      <span class="split-label" style="font-weight:700;color:var(--text)">Combined Realized</span>
-      <span class="split-value ${pnlClass(totalRealized)}">${fmt(totalRealized, {sign:true})}</span>
+      <span class="split-label">🤖 Bot Realized P&L</span>
+      <span class="split-value ${(chud.bot_realized_pnl||0)>=0?'green':'red'}">${fmt(chud.bot_realized_pnl, {sign:true})}</span>
     </div>
     <div class="split-row">
-      <span class="split-label" style="font-weight:700;color:var(--text)">Combined Unrealized</span>
-      <span class="split-value ${pnlClass(totalUnrealized)}">${fmt(totalUnrealized, {sign:true})}</span>
+      <span class="split-label">🤖 Bot Win/Loss</span>
+      <span class="split-value muted">${chud.win_count||0}W / ${chud.loss_count||0}L</span>
     </div>
-    <div class="split-row" style="background:var(--surface2);border-radius:8px;padding:12px 14px;">
-      <span class="split-label" style="font-weight:800;font-size:14px;color:var(--text)">🏆 Net Total P&L</span>
-      <span class="split-value" style="font-size:20px;font-weight:800;" class="${pnlClass(totalPnl)}">
-        <span class="${totalPnl >= 0 ? 'green' : 'red'}">${fmt(totalPnl, {sign:true})}</span>
+    <div class="split-row" style="background:var(--surface2);border-radius:8px;padding:12px 14px;margin-top:4px;">
+      <span class="split-label" style="font-weight:800;font-size:14px;color:var(--text)">🏆 Total Account Value</span>
+      <span class="split-value" style="font-size:20px;font-weight:800;">
+        <span class="gold">${fmt(acct.total_balance)}</span>
       </span>
     </div>
   `;
 }
 
-/* ──────────────────────────────────────────────
-   Main Render Loop
-────────────────────────────────────────────── */
+/* ── Main Render Loop ── */
 let lastHash = null;
 let firstLoad = true;
 
@@ -1036,19 +907,15 @@ async function fetchAndRender() {
     const data = await res.json();
 
     const h = hashData(data);
-    if (h === lastHash) return; // no change
+    if (h === lastHash) return;
     lastHash = h;
 
-    // Update timestamp
     const updatedEl = $('header-updated');
     if (data.updated) {
       updatedEl.textContent = `Updated ${toET(data.updated)}`;
     }
 
-    // Render all sections
     renderScoreboard(data);
-    renderRandy(data);
-    renderChudStats(data);
     renderPositions(data);
     renderOrders(data);
     renderClosed(data);
@@ -1080,7 +947,6 @@ async function fetchAndRender() {
   }
 }
 
-// Boot
 fetchAndRender();
 setInterval(fetchAndRender, 8000);
 </script>
