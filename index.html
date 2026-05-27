@@ -603,11 +603,15 @@ function renderScoreboard(data) {
     ? (totalPnl / acct.starting_deposit) * 100
     : 0;
 
+  const cashBal = acct.cash_balance || acct.total_balance;
+  const posBal = acct.position_value || 0;
+  const equityBal = cashBal + posBal;
+
   const cards = [
-    { label: 'Total Balance',    value: fmt(acct.total_balance),           cls: 'gold',   sub: `Buying power: ${fmt(acct.buying_power)}` },
-    { label: 'Starting Deposit', value: fmt(acct.starting_deposit),        cls: 'blue',   sub: `Margin req: ${fmt(acct.margin_requirement)}` },
-    { label: 'Total P&L',        value: fmt(totalPnl, {sign:true}),        cls: totalPnl >= 0 ? 'green' : 'red', sub: 'Randy + Chud combined' },
-    { label: 'Total ROI',        value: fmtPct(totalRoi, true),            cls: totalRoi >= 0 ? 'green' : 'red', sub: 'From starting deposit' },
+    { label: 'Total Balance',     value: fmt(equityBal),                    cls: 'gold',   sub: `Cash + Positions · Started at ${fmt(acct.starting_deposit)}` },
+    { label: 'Cash Balance',      value: fmt(cashBal),                      cls: 'blue',   sub: `Buying Power: ${fmt(acct.buying_power)}` },
+    { label: 'Position Value',    value: fmt(posBal),                       cls: 'purple', sub: `${(data.chud?.positions||[]).length} open positions` },
+    { label: 'Total P&L',         value: fmt(totalPnl, {sign:true}),        cls: totalPnl >= 0 ? 'green' : 'red', sub: `${fmtPct(totalRoi, true)} ROI · Randy + Chud` },
   ];
 
   $('scoreboard').innerHTML = cards.map(c => `
